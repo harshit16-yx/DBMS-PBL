@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Select Seat - Trip #{{ trip.trip_id }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Select Seat &amp; Passenger</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Trip #{{ trip.trip_id }}: {{ trip.source_city }} &rarr; {{ trip.dest_city }} &bull; {{ trip.departure_time | datetime_format }}
+    </p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('booking.search') }}" class="btn btn-secondary">&larr; Back to Trips</a>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; align-items: start;">
+  <!-- Left Column: Bus Seat Layout -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Bus Cabin Seating Layout</h3>
+      <span class="badge badge-scheduled">{{ trip.bus_type }} ({{ trip.reg_no }})</span>
+    </div>
+    <div class="card-body">
+      <div class="bus-layout-container">
+        <!-- Front indicator -->
+        <div class="bus-front-header">
+          <span>&larr; Front of Bus (Entry Door)</span>
+          <span>&#128652; Driver Cabin</span>
+        </div>
+
+        <!-- Seats Grid -->
+        <div class="seats-grid {% if 'Sleeper' in trip.bus_type %}sleeper-grid{% endif %}">
+          {% for s in seats %}
+            {% if s.seat_id in booked_seat_ids %}
+              <div class="seat-item seat-booked" title="Seat {{ s.seat_no }} is already booked">
+                <span>{{ s.seat_no }}</span>
+                <small style="font-size: 0.65rem;">Booked</small>
+              </div>
+            {% else %}
+              <div class="seat-item seat-free" data-seat-id="{{ s.seat_id }}" data-seat-no="{{ s.seat_no }}" title="Click to select Seat {{ s.seat_no }}">
+                <span>{{ s.seat_no }}</span>
+                <small style="font-size: 0.65rem;">Available</small>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        <!-- Seat Legend -->
+        <div class="seat-legend">
+          <div class="legend-item">
+            <div class="legend-swatch swatch-free"></div>
+            <span>Available</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch swatch-selected"></div>
+            <span>Selected</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch swatch-booked"></div>
+            <span>Booked</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Booking Details & Passenger Form -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Passenger &amp; Reservation Details</h3>
+    </div>
+    <div class="card-body">
+      <!-- Fare and Trip Summary -->
+      <div style="background: #f8fafc; border: 1px solid var(--border-light); border-radius: var(--radius); padding: 1rem; margin-bottom: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="color: var(--text-muted); font-size: 0.85rem;">Route:</span>
+          <strong>{{ trip.source_city }} &rarr; {{ trip.dest_city }}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="color: var(--text-muted); font-size: 0.85rem;">Departure:</span>
+          <span>{{ trip.departure_time | datetime_format }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="color: var(--text-muted); font-size: 0.85rem;">Base Fare:</span>
+          <strong style="color: var(--teal); font-size: 1.1rem;">{{ trip.base_fare | currency }}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--border-color); padding-top: 0.5rem; margin-top: 0.5rem;">
+          <span style="color: var(--text-muted); font-size: 0.85rem;">Selected Seat:</span>
+          <strong id="selectedSeatLabel" style="color: var(--primary); font-size: 1.1rem;">None selected</strong>
+        </div>
+      </div>
+
+      <!-- Booking Form -->
+      <form method="POST" action="{{ url_for('booking.book_seat') }}" id="bookingForm">
+        <input type="hidden" name="trip_id" value="{{ trip.trip_id }}">
+        <input type="hidden" name="seat_id" id="selectedSeatId" value="">
+
+        <div class="form-group">
+          <label>Passenger Type</label>
+          <div style="display: flex; gap: 1.5rem; margin-top: 0.35rem;">
+            <label style="font-weight: 500; cursor: pointer;">
+              <input type="radio" name="passenger_type" value="new" checked onclick="togglePassengerMode('new')">
+              New Passenger
+            </label>
+            <label style="font-weight: 500; cursor: pointer;">
+              <input type="radio" name="passenger_type" value="existing" onclick="togglePassengerMode('existing')">
+              Existing Passenger
+            </label>
+          </div>
+        </div>
+
+        <!-- New Passenger Fields -->
+        <div id="newPassengerFields">
+          <div class="form-group">
+            <label for="pName">Full Name *</label>
+            <input type="text" name="name" id="pName" class="form-control" placeholder="e.g. Ramesh Kumar">
+          </div>
+          <div class="form-group">
+            <label for="pPhone">Phone Number *</label>
+            <input type="text" name="phone" id="pPhone" class="form-control" placeholder="e.g. 9876543210">
+          </div>
+          <div class="form-group">
+            <label for="pEmail">Email Address (Optional)</label>
+            <input type="email" name="email" id="pEmail" class="form-control" placeholder="e.g. ramesh@example.com">
+          </div>
+        </div>
+
+        <!-- Existing Passenger Dropdown -->
+        <div id="existingPassengerFields" style="display: none;">
+          <div class="form-group">
+            <label for="pSelect">Select Passenger</label>
+            <select name="passenger_id" id="pSelect" class="form-control">
+              <option value="">-- Choose Passenger --</option>
+              {% for p in passengers %}
+                <option value="{{ p.passenger_id }}">{{ p.name }} ({{ p.phone }})</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" id="submitBookingBtn" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.75rem;" disabled>
+          Proceed to Payment &rarr;
+        </button>
+        <p class="form-help" style="text-align: center; margin-top: 0.5rem;">
+          Click an available seat in the bus cabin above to activate reservation.
+        </p>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/seats.js') }}"></script>
+<script>
+  function togglePassengerMode(mode) {
+    const newBox = document.getElementById('newPassengerFields');
+    const existBox = document.getElementById('existingPassengerFields');
+    const nameInput = document.getElementById('pName');
+    const phoneInput = document.getElementById('pPhone');
+
+    if (mode === 'new') {
+      newBox.style.display = 'block';
+      existBox.style.display = 'none';
+      nameInput.required = true;
+      phoneInput.required = true;
+    } else {
+      newBox.style.display = 'none';
+      existBox.style.display = 'block';
+      nameInput.required = false;
+      phoneInput.required = false;
+    }
+  }
+</script>
+{% endblock %}

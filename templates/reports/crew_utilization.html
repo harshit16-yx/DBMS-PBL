@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Crew Utilization Report - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Crew Duty &amp; Utilization Report</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Report 16: Operational duty hours and trip service counts. Powered by SQL View <code>v_crew_utilization</code>.
+    </p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">&larr; Back to Reports</a>
+  </div>
+</div>
+
+<!-- Drivers Section -->
+<div class="card">
+  <div class="card-header">
+    <h3>Driver Workload &amp; Driving Duty Hours</h3>
+    <span class="badge badge-scheduled">{{ drivers|length }} Drivers Active</span>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Driver Name</th>
+          <th>License Number</th>
+          <th>Phone</th>
+          <th>Assigned Trips</th>
+          <th>Completed Trips</th>
+          <th>Upcoming Scheduled</th>
+          <th>Total Duty Hours</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if drivers %}
+          {% for d in drivers %}
+            <tr>
+              <td><strong>#{{ d.crew_id }}</strong></td>
+              <td><strong>{{ d.name }}</strong></td>
+              <td><code>{{ d.credential }}</code></td>
+              <td>{{ d.phone }}</td>
+              <td>{{ d.total_trips }} trips</td>
+              <td><span class="badge badge-completed">{{ d.completed_trips }} completed</span></td>
+              <td>{{ d.upcoming_scheduled_trips }} scheduled</td>
+              <td><strong style="color: var(--primary); font-size: 1.05rem;">{{ d.total_duty_hours }} hrs</strong></td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="8" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">No drivers registered.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Conductors Section -->
+<div class="card">
+  <div class="card-header">
+    <h3>Conductor Workload &amp; Service Hours</h3>
+    <span class="badge badge-scheduled">{{ conductors|length }} Conductors Active</span>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Conductor Name</th>
+          <th>Phone</th>
+          <th>Assigned Trips</th>
+          <th>Completed Trips</th>
+          <th>Upcoming Scheduled</th>
+          <th>Total Duty Hours</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if conductors %}
+          {% for c in conductors %}
+            <tr>
+              <td><strong>#{{ c.crew_id }}</strong></td>
+              <td><strong>{{ c.name }}</strong></td>
+              <td>{{ c.phone }}</td>
+              <td>{{ c.total_trips }} trips</td>
+              <td><span class="badge badge-completed">{{ c.completed_trips }} completed</span></td>
+              <td>{{ c.upcoming_scheduled_trips }} scheduled</td>
+              <td><strong style="color: var(--teal); font-size: 1.05rem;">{{ c.total_duty_hours }} hrs</strong></td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="7" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">No conductors registered.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

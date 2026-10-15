@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Fleet &amp; Bus Management - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Fleet &amp; Bus Management</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Register buses, configure seat capacities, and monitor operational status.
+    </p>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; align-items: start; margin-bottom: 1.5rem;">
+  <!-- Add Bus Form -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Add Bus to Fleet</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('admin.buses') }}">
+        <div class="form-group">
+          <label for="regNo">Registration Number *</label>
+          <input type="text" name="reg_no" id="regNo" class="form-control" placeholder="e.g. MH-12-PQ-9900" required>
+        </div>
+
+        <div class="form-group">
+          <label for="busType">Bus Type *</label>
+          <select name="bus_type" id="busType" class="form-control" required>
+            <option value="Seater">Seater (Standard)</option>
+            <option value="AC Seater">AC Seater (Pushback)</option>
+            <option value="Sleeper">Sleeper (Berth)</option>
+            <option value="AC Sleeper">AC Sleeper (Luxury)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="totalSeats">Total Capacity (Seats) *</label>
+          <input type="number" name="total_seats" id="totalSeats" class="form-control" value="20" min="4" max="60" required>
+          <small class="form-help">Individual seat records will be auto-generated automatically.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="busStatus">Initial Status *</label>
+          <select name="status" id="busStatus" class="form-control" required>
+            <option value="Active">Active</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Retired">Retired</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Register Bus &amp; Generate Seats</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Fleet Table -->
+  <div class="card" style="grid-column: span 2;">
+    <div class="card-header">
+      <h3>Active &amp; Maintenance Fleet ({{ buses|length }})</h3>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Registration No</th>
+            <th>Type</th>
+            <th>Seats (Total / DB)</th>
+            <th>Status</th>
+            <th>Trips</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if buses %}
+            {% for b in buses %}
+              <tr>
+                <td><strong>#{{ b.bus_id }}</strong></td>
+                <td><strong>{{ b.reg_no }}</strong></td>
+                <td><span class="badge badge-scheduled">{{ b.bus_type }}</span></td>
+                <td>{{ b.total_seats }} seats ({{ b.seats_count }} in DB)</td>
+                <td>
+                  <form method="POST" action="{{ url_for('admin.update_bus_status', bus_id=b.bus_id) }}" style="display: inline;">
+                    <select name="status" onchange="this.form.submit();" class="form-control" style="padding: 0.2rem 0.4rem; font-size: 0.8rem; width: auto; display: inline-block;">
+                      <option value="Active" {% if b.status == 'Active' %}selected{% endif %}>Active</option>
+                      <option value="Maintenance" {% if b.status == 'Maintenance' %}selected{% endif %}>Maintenance</option>
+                      <option value="Retired" {% if b.status == 'Retired' %}selected{% endif %}>Retired</option>
+                    </select>
+                  </form>
+                </td>
+                <td>{{ b.trips_count }} trips</td>
+                <td>
+                  <form method="POST" action="{{ url_for('admin.delete_bus', bus_id=b.bus_id) }}" style="display: inline;" onsubmit="return confirm('Delete bus and associated seats? Note: If trips exist, database will prevent deletion.');">
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                No buses registered yet.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

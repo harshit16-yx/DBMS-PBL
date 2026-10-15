@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Passengers Directory - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Passengers Directory</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      View all registered travel customers, contact info, total spend, and booking history.
+    </p>
+  </div>
+</div>
+
+<!-- Search Bar -->
+<div class="card">
+  <div class="card-body">
+    <form method="GET" action="{{ url_for('passengers.index') }}" style="display: flex; gap: 0.75rem; max-width: 550px;">
+      <input type="text" name="q" class="form-control" placeholder="Search by name, phone number, or email..." value="{{ search_query }}">
+      <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Search</button>
+      {% if search_query %}
+        <a href="{{ url_for('passengers.index') }}" class="btn btn-secondary">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- Passenger Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>Registered Customers ({{ passengers|length }})</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Full Name</th>
+          <th>Mobile Phone</th>
+          <th>Email Address</th>
+          <th>Total Bookings</th>
+          <th>Total Paid</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if passengers %}
+          {% for p in passengers %}
+            <tr>
+              <td><strong>#{{ p.passenger_id }}</strong></td>
+              <td><strong>{{ p.name }}</strong></td>
+              <td>{{ p.phone }}</td>
+              <td>{{ p.email or '&mdash;'|safe }}</td>
+              <td><span class="badge badge-scheduled">{{ p.total_bookings }} reservations</span></td>
+              <td><strong style="color: var(--teal);">{{ p.total_spent | currency }}</strong></td>
+              <td>
+                <div style="display: flex; gap: 0.35rem;">
+                  <a href="{{ url_for('reports.passenger_history', passenger_id=p.passenger_id) }}" class="btn btn-sm btn-secondary">History</a>
+                  <a href="{{ url_for('passengers.edit', passenger_id=p.passenger_id) }}" class="btn btn-sm btn-primary">Edit</a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              No passengers found matching your search.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

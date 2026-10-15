@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Fare Matrix Configuration - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Fare Matrix Configuration</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Set base fare tariffs per corridor and bus category. Enforced during booking and payment triggers.
+    </p>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; align-items: start; margin-bottom: 1.5rem;">
+  <!-- Set/Update Fare Form -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Set or Update Base Fare</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('admin.fares') }}">
+        <div class="form-group">
+          <label for="routeSelect">Route *</label>
+          <select name="route_id" id="routeSelect" class="form-control" required>
+            <option value="">-- Choose Route --</option>
+            {% for r in routes %}
+              <option value="{{ r.route_id }}">{{ r.source_city }} &rarr; {{ r.dest_city }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="busType">Bus Type *</label>
+          <select name="bus_type" id="busType" class="form-control" required>
+            {% for bt in bus_types %}
+              <option value="{{ bt }}">{{ bt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="baseFare">Base Fare (₹) *</label>
+          <input type="number" step="0.50" name="base_fare" id="baseFare" class="form-control" placeholder="e.g. 550.00" min="1" required>
+          <small class="form-help">Must be greater than zero (enforced by chk_fare constraint).</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Save Base Fare</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Fares Table -->
+  <div class="card" style="grid-column: span 2;">
+    <div class="card-header">
+      <h3>Configured Fares ({{ fares|length }})</h3>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Distance</th>
+            <th>Bus Type</th>
+            <th>Base Fare</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if fares %}
+            {% for f in fares %}
+              <tr>
+                <td><strong>{{ f.source_city }} &rarr; {{ f.dest_city }}</strong></td>
+                <td>{{ f.distance_km }} km</td>
+                <td><span class="badge badge-scheduled">{{ f.bus_type }}</span></td>
+                <td><strong style="color: var(--teal); font-size: 1.05rem;">{{ f.base_fare | currency }}</strong></td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                No fares configured yet.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

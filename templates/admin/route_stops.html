@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Stops for Route #{{ route.route_id }} - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Route Stops: {{ route.source_city }} &rarr; {{ route.dest_city }}</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Total Distance: {{ route.distance_km }} km &bull; Manage intermediate station sequence
+    </p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('admin.routes') }}" class="btn btn-secondary">&larr; Back to Routes</a>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; align-items: start;">
+  <!-- Assign Stop Form -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Assign Stop to Route</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('admin.route_stops', route_id=route.route_id) }}">
+        <input type="hidden" name="action" value="add">
+
+        <div class="form-group">
+          <label for="stopSelect">Select Stop *</label>
+          <select name="stop_id" id="stopSelect" class="form-control" required>
+            <option value="">-- Choose Stop --</option>
+            {% for s in available_stops %}
+              <option value="{{ s.stop_id }}">{{ s.stop_name }} ({{ s.city }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="stopOrder">Sequence Order (1, 2, 3...) *</label>
+          <input type="number" name="stop_order" id="stopOrder" class="form-control" min="1" value="{{ (assigned_stops|length) + 1 }}" required>
+          <small class="form-help">Unique order index along the travel direction.</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Add Stop to Sequence</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Ordered Stops Sequence Table -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Stop Sequence Order</h3>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Stop Name</th>
+            <th>City</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if assigned_stops %}
+            {% for s in assigned_stops %}
+              <tr>
+                <td><strong style="font-size: 1rem; color: var(--primary);">#{{ s.stop_order }}</strong></td>
+                <td><strong>{{ s.stop_name }}</strong></td>
+                <td>{{ s.city }}</td>
+                <td>
+                  <form method="POST" action="{{ url_for('admin.route_stops', route_id=route.route_id) }}" style="display: inline;" onsubmit="return confirm('Remove this stop from route?');">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="stop_id" value="{{ s.stop_id }}">
+                    <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                No intermediate stops assigned to this route yet.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

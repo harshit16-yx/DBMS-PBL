@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Revenue per Route Report - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Revenue per Route Report</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Financial ledger detailing collections, cancellation refunds, and net margins. Powered by SQL View <code>v_route_revenue</code>.
+    </p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">&larr; Back to Reports</a>
+  </div>
+</div>
+
+<!-- Date Filter Card -->
+<div class="card">
+  <div class="card-header">
+    <h3>Filter by Date Range</h3>
+  </div>
+  <div class="card-body">
+    <form method="GET" action="{{ url_for('reports.revenue') }}" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+      <div>
+        <label for="startDate" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Start Date</label>
+        <input type="date" name="start_date" id="startDate" class="form-control" value="{{ start_date }}">
+      </div>
+      <div>
+        <label for="endDate" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">End Date</label>
+        <input type="date" name="end_date" id="endDate" class="form-control" value="{{ end_date }}">
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="submit" class="btn btn-primary">Filter Revenue</button>
+        <a href="{{ url_for('reports.revenue') }}" class="btn btn-secondary">Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Financial Summary Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Gross Paid Fares</div>
+    <div class="stat-value">{{ grand_paid | currency }}</div>
+    <div class="stat-subtext">Total payments received</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Refunded</div>
+    <div class="stat-value" style="color: #991b1b;">{{ grand_refunded | currency }}</div>
+    <div class="stat-subtext">Trigger-enforced cancellations</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Net System Revenue</div>
+    <div class="stat-value" style="color: var(--teal);">{{ grand_net | currency }}</div>
+    <div class="stat-subtext">Net earnings retained</div>
+  </div>
+</div>
+
+<!-- Revenue Breakdown Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>Corridor Performance</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Route ID</th>
+          <th>Travel Corridor</th>
+          <th>Distance</th>
+          <th>Trips</th>
+          <th>Bookings</th>
+          <th>Gross Paid</th>
+          <th>Refunds Paid</th>
+          <th>Net Revenue</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if reports %}
+          {% for r in reports %}
+            <tr>
+              <td><strong>#{{ r.route_id }}</strong></td>
+              <td><strong>{{ r.source_city }} &rarr; {{ r.dest_city }}</strong></td>
+              <td>{{ r.distance_km }} km</td>
+              <td>{{ r.total_trips }} trips</td>
+              <td>{{ r.total_bookings }} tickets</td>
+              <td>{{ r.total_paid | currency }}</td>
+              <td style="color: #991b1b;">{{ r.total_refunded | currency }}</td>
+              <td><strong style="color: var(--teal); font-size: 1.05rem;">{{ r.net_revenue | currency }}</strong></td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              No revenue records found for this period.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+      {% if reports %}
+        <tfoot>
+          <tr>
+            <td colspan="5" style="text-align: right; font-weight: 700;">TOTALS:</td>
+            <td><strong>{{ grand_paid | currency }}</strong></td>
+            <td style="color: #991b1b;"><strong>{{ grand_refunded | currency }}</strong></td>
+            <td><strong style="color: var(--teal); font-size: 1.15rem;">{{ grand_net | currency }}</strong></td>
+          </tr>
+        </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+{% endblock %}

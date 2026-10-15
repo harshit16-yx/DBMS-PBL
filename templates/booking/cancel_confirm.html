@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Cancellation - Booking #{{ booking.booking_id }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Cancel Reservation</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Review cancellation policy and refund eligibility for Booking #{{ booking.booking_id }}.
+    </p>
+  </div>
+</div>
+
+<div class="card" style="max-width: 650px; margin: 0 auto;">
+  <div class="card-header">
+    <h3>Cancellation &amp; Refund Assessment</h3>
+    <span class="badge badge-warning">Cancellation Review</span>
+  </div>
+  <div class="card-body">
+    <!-- Policy Explanation Alert -->
+    <div class="alert alert-warning" style="margin-bottom: 1.5rem;">
+      <div>
+        <strong>System Cancellation Policy (Trigger Enforced):</strong>
+        <ul style="margin-left: 1.25rem; margin-top: 0.35rem; font-size: 0.88rem;">
+          <li><strong>&ge; 24 hours before departure:</strong> 90% refund of fare paid.</li>
+          <li><strong>6 to 24 hours before departure:</strong> 50% refund of fare paid.</li>
+          <li><strong>&lt; 6 hours before departure:</strong> 0% refund (No refund).</li>
+          <li><strong>After scheduled departure:</strong> Cancellation strictly rejected.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Booking Summary Details -->
+    <table class="data-table" style="margin-bottom: 1.5rem;">
+      <tbody>
+        <tr>
+          <td style="width: 40%; color: var(--text-muted);">Booking ID:</td>
+          <td><strong>#{{ booking.booking_id }}</strong></td>
+        </tr>
+        <tr>
+          <td style="color: var(--text-muted);">Passenger:</td>
+          <td>{{ booking.passenger_name }} ({{ booking.phone }})</td>
+        </tr>
+        <tr>
+          <td style="color: var(--text-muted);">Route &amp; Seat:</td>
+          <td><strong>{{ booking.source_city }} &rarr; {{ booking.dest_city }}</strong> (Seat {{ booking.seat_no }})</td>
+        </tr>
+        <tr>
+          <td style="color: var(--text-muted);">Departure Time:</td>
+          <td>{{ booking.departure_time | datetime_format }}</td>
+        </tr>
+        <tr>
+          <td style="color: var(--text-muted);">Time Remaining to Departure:</td>
+          <td>
+            <strong>{{ diff_hours }} hours remaining</strong>
+          </td>
+        </tr>
+        <tr>
+          <td style="color: var(--text-muted);">Applicable Policy Tier:</td>
+          <td>
+            <span class="badge badge-maintenance">{{ tier_text }}</span>
+          </td>
+        </tr>
+        <tr style="background-color: #f8fafc;">
+          <td style="color: var(--text-muted); font-size: 1rem;">Total Amount Paid:</td>
+          <td><strong>{{ booking.paid_amount | currency }}</strong></td>
+        </tr>
+        <tr style="background-color: #fef2f2;">
+          <td style="font-weight: 700; color: #991b1b; font-size: 1.05rem;">Estimated Refund:</td>
+          <td>
+            <strong style="color: #991b1b; font-size: 1.25rem;">{{ expected_refund_amt | currency }}</strong>
+            <small style="display: block; color: var(--text-muted); font-size: 0.75rem;">
+              Exact refund amount is calculated directly by the MySQL trigger upon confirmation.
+            </small>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <form method="POST" action="{{ url_for('booking.cancel_booking', booking_id=booking.booking_id) }}" onsubmit="return confirm('Are you sure you wish to cancel this reservation? This action cannot be undone.');">
+      <div style="display: flex; gap: 1rem;">
+        <button type="submit" class="btn btn-danger" style="flex: 1; padding: 0.75rem;">
+          Confirm Cancellation &amp; Process Refund
+        </button>
+        <a href="{{ url_for('booking.my_bookings', phone=booking.phone) }}" class="btn btn-secondary">
+          Keep Reservation
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

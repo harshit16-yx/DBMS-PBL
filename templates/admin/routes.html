@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Routes &amp; Stops - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Routes &amp; Stops Management</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Define intercity travel corridors, intermediate stop sequences, and distances.
+    </p>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+  <!-- Add Route Card -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Add New Route</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('admin.new_route') }}">
+        <div class="form-group">
+          <label for="srcCity">Source City *</label>
+          <input type="text" name="source_city" id="srcCity" class="form-control" placeholder="e.g. Pune" required>
+        </div>
+        <div class="form-group">
+          <label for="dstCity">Destination City *</label>
+          <input type="text" name="dest_city" id="dstCity" class="form-control" placeholder="e.g. Goa" required>
+        </div>
+        <div class="form-group">
+          <label for="distKm">Distance (km) *</label>
+          <input type="number" name="distance_km" id="distKm" class="form-control" placeholder="e.g. 450" min="1" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Route</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Master Stop Card -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Add New Master Stop</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('admin.new_stop') }}">
+        <input type="hidden" name="return_to" value="{{ url_for('admin.routes') }}">
+        <div class="form-group">
+          <label for="stopName">Stop / Station Name *</label>
+          <input type="text" name="stop_name" id="stopName" class="form-control" placeholder="e.g. Panvel Bus Stand" required>
+        </div>
+        <div class="form-group">
+          <label for="stopCity">City *</label>
+          <input type="text" name="city" id="stopCity" class="form-control" placeholder="e.g. Mumbai" required>
+        </div>
+        <div style="margin-top: 1.9rem;">
+          <button type="submit" class="btn btn-secondary" style="width: 100%;">Register Master Stop</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Routes List -->
+<div class="card">
+  <div class="card-header">
+    <h3>Existing Routes ({{ routes|length }})</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Origin</th>
+          <th>Destination</th>
+          <th>Distance</th>
+          <th>Stops Assigned</th>
+          <th>Total Trips</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if routes %}
+          {% for r in routes %}
+            <tr>
+              <td><strong>#{{ r.route_id }}</strong></td>
+              <td><strong>{{ r.source_city }}</strong></td>
+              <td><strong>{{ r.dest_city }}</strong></td>
+              <td>{{ r.distance_km }} km</td>
+              <td>
+                <span class="badge badge-scheduled">{{ r.stops_count }} stops</span>
+              </td>
+              <td>{{ r.trips_count }} trips</td>
+              <td>
+                <a href="{{ url_for('admin.route_stops', route_id=r.route_id) }}" class="btn btn-sm btn-primary">
+                  Manage Stops &rarr;
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              No routes registered yet.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

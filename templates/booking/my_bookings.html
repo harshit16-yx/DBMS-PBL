@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}My Bookings - Bus Reservation System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>My Bookings &amp; Reservations</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Look up ticket history by passenger phone number, view boarding passes, or manage cancellations.
+    </p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('booking.search') }}" class="btn btn-primary">Book New Trip</a>
+  </div>
+</div>
+
+<!-- Phone Lookup Card -->
+<div class="card">
+  <div class="card-header">
+    <h3>Passenger Phone Lookup</h3>
+  </div>
+  <div class="card-body">
+    <form method="GET" action="{{ url_for('booking.my_bookings') }}" style="display: flex; gap: 0.75rem; max-width: 500px;">
+      <input type="text" name="phone" class="form-control" placeholder="Enter 10-digit mobile number (e.g. 9820011223)" value="{{ phone }}" required>
+      <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Search Bookings</button>
+    </form>
+  </div>
+</div>
+
+{% if passenger %}
+  <div class="card" style="margin-bottom: 1.5rem; background: #f8fafc;">
+    <div class="card-body" style="padding: 1rem 1.25rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <span style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Passenger Profile</span>
+          <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-main);">{{ passenger.name }}</div>
+        </div>
+        <div style="font-size: 0.9rem; color: var(--text-muted);">
+          <span>Phone: <strong>{{ passenger.phone }}</strong></span> &bull; 
+          <span>Email: <strong>{{ passenger.email or 'N/A' }}</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Bookings List Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>Reservations ({{ bookings|length }})</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Booking #</th>
+          <th>Route</th>
+          <th>Departure Time</th>
+          <th>Seat</th>
+          <th>Bus / Type</th>
+          <th>Booking Status</th>
+          <th>Payment</th>
+          <th>Refund</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if bookings %}
+          {% for b in bookings %}
+            <tr>
+              <td><strong>#{{ b.booking_id }}</strong></td>
+              <td><strong>{{ b.source_city }} &rarr; {{ b.dest_city }}</strong></td>
+              <td>{{ b.departure_time | datetime_format }}</td>
+              <td><span class="badge badge-active">Seat {{ b.seat_no }}</span></td>
+              <td>
+                <div>{{ b.reg_no }}</div>
+                <small style="color: var(--text-muted);">{{ b.bus_type }}</small>
+              </td>
+              <td>
+                {% if b.booking_status == 'Confirmed' %}
+                  <span class="badge badge-confirmed">Confirmed</span>
+                {% else %}
+                  <span class="badge badge-cancelled">Cancelled</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if b.payment_status == 'Paid' %}
+                  <span class="badge badge-paid">Paid ({{ b.amount | currency }})</span>
+                {% elif b.payment_status == 'Refunded' %}
+                  <span class="badge badge-refunded">Refunded</span>
+                {% else %}
+                  <span class="badge badge-warning">Unpaid</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if b.refund_amount is not none and b.booking_status == 'Cancelled' %}
+                  <strong style="color: #991b1b;">{{ b.refund_amount | currency }}</strong>
+                {% else %}
+                  <span style="color: var(--text-muted);">&mdash;</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="display: flex; gap: 0.35rem;">
+                  <a href="{{ url_for('booking.ticket', booking_id=b.booking_id) }}" class="btn btn-sm btn-secondary">Ticket</a>
+                  
+                  {% if b.booking_status == 'Confirmed' and b.departure_time > now %}
+                    <a href="{{ url_for('booking.cancel_booking', booking_id=b.booking_id) }}" class="btn btn-sm btn-danger">Cancel</a>
+                  {% elif b.booking_status == 'Confirmed' and not b.payment_status %}
+                    <a href="{{ url_for('booking.payment', booking_id=b.booking_id) }}" class="btn btn-sm btn-primary">Pay</a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              {% if phone %}
+                No reservations found for phone number "{{ phone }}".
+              {% else %}
+                Enter a passenger phone number above to view booking history.
+              {% endif %}
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

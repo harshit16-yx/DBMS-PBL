@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Bus Reservation & Fleet Scheduling{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>System Dashboard</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Overview of active routes, fleet scheduling, operations, and revenues.
+    </p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('booking.search') }}" class="btn btn-primary">Book New Trip</a>
+    <a href="{{ url_for('admin.trips') }}" class="btn btn-secondary">Manage Schedules</a>
+  </div>
+</div>
+
+<!-- Summary Metric Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Total Routes</div>
+    <div class="stat-value">{{ metrics.total_routes }}</div>
+    <div class="stat-subtext">Active operational corridors</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Active Fleet</div>
+    <div class="stat-value">{{ metrics.active_buses }}</div>
+    <div class="stat-subtext">Buses in service</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Scheduled Trips</div>
+    <div class="stat-value">{{ metrics.scheduled_trips }}</div>
+    <div class="stat-subtext">Open for passenger booking</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Confirmed Bookings</div>
+    <div class="stat-value">{{ metrics.confirmed_bookings }}</div>
+    <div class="stat-subtext">Active reserved seats</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-label">Net Revenue</div>
+    <div class="stat-value" style="color: var(--teal);">{{ metrics.net_revenue | currency }}</div>
+    <div class="stat-subtext">Total paid minus refunds</div>
+  </div>
+</div>
+
+<!-- Two-Column Operational Summary -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+  <!-- Upcoming Trips -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Upcoming Scheduled Trips</h3>
+      <a href="{{ url_for('booking.search') }}" class="btn btn-sm btn-secondary">Search All</a>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Bus / Type</th>
+            <th>Departure</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if upcoming_trips %}
+            {% for trip in upcoming_trips %}
+              <tr>
+                <td><strong>{{ trip.source_city }} &rarr; {{ trip.dest_city }}</strong></td>
+                <td>
+                  <div>{{ trip.reg_no }}</div>
+                  <small style="color: var(--text-muted);">{{ trip.bus_type }}</small>
+                </td>
+                <td>{{ trip.departure_time | datetime_format }}</td>
+                <td>
+                  <a href="{{ url_for('booking.view_seats', trip_id=trip.trip_id) }}" class="btn btn-sm btn-primary">Book</a>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                No upcoming trips scheduled. <a href="{{ url_for('admin.new_trip') }}">Schedule a new trip</a>.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent Confirmed Bookings -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Recent Confirmed Bookings</h3>
+      <a href="{{ url_for('booking.my_bookings') }}" class="btn btn-sm btn-secondary">Lookup</a>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Passenger</th>
+            <th>Route / Seat</th>
+            <th>Travel Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if recent_bookings %}
+            {% for bk in recent_bookings %}
+              <tr>
+                <td>
+                  <strong>{{ bk.passenger_name }}</strong>
+                  <div><small style="color: var(--text-muted);">{{ bk.phone }}</small></div>
+                </td>
+                <td>
+                  <div>{{ bk.source_city }} &rarr; {{ bk.dest_city }}</div>
+                  <span class="badge badge-active">Seat {{ bk.seat_no }}</span>
+                </td>
+                <td>{{ bk.departure_time | datetime_format }}</td>
+                <td>
+                  <a href="{{ url_for('booking.ticket', booking_id=bk.booking_id) }}" class="btn btn-sm btn-secondary">Ticket</a>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                No bookings recorded yet.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

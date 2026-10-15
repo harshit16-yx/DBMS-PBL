@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Bus Reservation and Fleet Scheduling System{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <!-- Top Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="{{ url_for('main.index') }}" class="nav-brand">
+        <span>Bus System</span>
+        <span class="badge-tag">DBMS</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="{{ url_for('main.index') }}">Home</a></li>
+        <li><a href="{{ url_for('booking.search') }}">Book Trip</a></li>
+        <li><a href="{{ url_for('booking.my_bookings') }}">My Bookings</a></li>
+        
+        <!-- Admin Dropdown -->
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" onclick="event.preventDefault();">Admin ▾</a>
+          <ul class="dropdown-menu">
+            <li><a href="{{ url_for('admin.trips') }}">Trip Scheduling</a></li>
+            <li><a href="{{ url_for('admin.routes') }}">Routes & Stops</a></li>
+            <li><a href="{{ url_for('admin.buses') }}">Fleet & Buses</a></li>
+            <li><a href="{{ url_for('admin.crew') }}">Crew (Drivers & Conductors)</a></li>
+            <li><a href="{{ url_for('admin.fares') }}">Fares Matrix</a></li>
+            <li><a href="{{ url_for('passengers.index') }}">Passengers Directory</a></li>
+          </ul>
+        </li>
+
+        <li><a href="{{ url_for('reports.index') }}">Reports</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+    <!-- Flash Notifications Container -->
+    <div class="alerts-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category in ['error', 'danger'] else category }}">
+              <span><strong>{{ 'Notice: ' if category == 'info' else ('Success: ' if category == 'success' else 'Error: ') }}</strong>{{ message }}</span>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="nav-container" style="justify-content: center;">
+      <p>&copy; Bus Reservation & Fleet Scheduling System &bull; University DBMS Project &bull; MySQL 8.0 &amp; Flask</p>
+    </div>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

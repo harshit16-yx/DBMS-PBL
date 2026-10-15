@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Cancellation &amp; Refund Report - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Cancellation &amp; Refund Analytics</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Report 15: Cancellation volumes and refund distributions grouped by route and calendar month.
+    </p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">&larr; Back to Reports</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Monthly Cancellation Summary</h3>
+    <span class="badge badge-warning">Tiered Policy Enforced</span>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Route (Origin &rarr; Destination)</th>
+          <th>Cancellations Count</th>
+          <th>Total Refunds Distributed</th>
+          <th>Average Refund per Ticket</th>
+          <th>Avg Hours Pre-Departure</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if reports %}
+          {% for r in reports %}
+            <tr>
+              <td><strong>{{ r.cancel_month }}</strong></td>
+              <td><strong>{{ r.source_city }} &rarr; {{ r.dest_city }}</strong></td>
+              <td><span class="badge badge-cancelled">{{ r.total_cancellations }} cancelled</span></td>
+              <td><strong style="color: #991b1b; font-size: 1rem;">{{ r.total_refunds | currency }}</strong></td>
+              <td>{{ r.avg_refund | currency }}</td>
+              <td>{{ r.avg_hours_before_dep }} hrs before dep</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              No cancellations recorded in the system.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

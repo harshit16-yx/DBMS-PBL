@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Boarding Pass &amp; Ticket #{{ ticket.booking_id }}{% endblock %}
+
+{% block content %}
+<div class="page-header btn-no-print">
+  <div>
+    <h1>Booking Confirmation &amp; Ticket</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Official electronic ticket issued by the Bus Reservation System.
+    </p>
+  </div>
+  <div class="header-actions">
+    <button onclick="window.print();" class="btn btn-teal">&#128438; Print Ticket</button>
+    <a href="{{ url_for('booking.my_bookings', phone=ticket.phone) }}" class="btn btn-secondary">My Bookings</a>
+    <a href="{{ url_for('booking.search') }}" class="btn btn-primary">Book Another Trip</a>
+  </div>
+</div>
+
+<!-- Ticket Body -->
+<div class="ticket-wrapper">
+  <div class="ticket-header">
+    <div>
+      <div class="ticket-title">INTERCITY EXPRESS BOARDING PASS</div>
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">
+        Database System Project &bull; Verified Electronic Reservation
+      </div>
+    </div>
+    <div style="text-align: right;">
+      <div style="font-size: 1.15rem; font-weight: 700; color: var(--secondary);">TICKET #{{ ticket.booking_id }}</div>
+      <div style="margin-top: 4px;">
+        {% if ticket.booking_status == 'Confirmed' %}
+          <span class="badge badge-active" style="font-size: 0.85rem;">Confirmed &bull; Valid</span>
+        {% else %}
+          <span class="badge badge-cancelled" style="font-size: 0.85rem;">Cancelled</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="ticket-grid">
+    <div class="ticket-field">
+      <div class="label">Passenger Name</div>
+      <div class="value">{{ ticket.passenger_name }}</div>
+    </div>
+    <div class="ticket-field">
+      <div class="label">Contact Phone</div>
+      <div class="value">{{ ticket.phone }}</div>
+    </div>
+
+    <div class="ticket-field">
+      <div class="label">Source City (Origin)</div>
+      <div class="value" style="color: var(--primary);">{{ ticket.source_city }}</div>
+    </div>
+    <div class="ticket-field">
+      <div class="label">Destination City</div>
+      <div class="value" style="color: var(--primary);">{{ ticket.dest_city }}</div>
+    </div>
+
+    <div class="ticket-field">
+      <div class="label">Departure Date &amp; Time</div>
+      <div class="value">{{ ticket.departure_time | datetime_format }}</div>
+    </div>
+    <div class="ticket-field">
+      <div class="label">Estimated Arrival</div>
+      <div class="value">{{ ticket.arrival_time | datetime_format }}</div>
+    </div>
+
+    <div class="ticket-field">
+      <div class="label">Assigned Seat</div>
+      <div class="value" style="font-size: 1.35rem; color: var(--primary);">Seat {{ ticket.seat_no }}</div>
+    </div>
+    <div class="ticket-field">
+      <div class="label">Bus Registration &amp; Type</div>
+      <div class="value">{{ ticket.reg_no }} ({{ ticket.bus_type }})</div>
+    </div>
+
+    <div class="ticket-field">
+      <div class="label">Fare Amount</div>
+      <div class="value" style="color: var(--teal);">{{ ticket.amount | currency if ticket.amount else 'Pending' }}</div>
+    </div>
+    <div class="ticket-field">
+      <div class="label">Payment Method &amp; Status</div>
+      <div class="value">
+        {% if ticket.payment_status %}
+          {{ ticket.method }} ({{ ticket.payment_status }})
+        {% else %}
+          <span style="color: #dc2626;">Payment Pending</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if ticket.booking_status == 'Cancelled' %}
+    <div style="background-color: #fee2e2; border: 1px solid #fecaca; border-radius: var(--radius); padding: 1rem; margin-bottom: 1.5rem;">
+      <strong style="color: #991b1b;">Cancellation Notice:</strong>
+      <p style="font-size: 0.88rem; color: #7f1d1d; margin-top: 0.25rem;">
+        This booking was cancelled on {{ ticket.cancelled_at | datetime_format }}.
+        Refund of <strong>{{ ticket.refund_amount | currency }}</strong> was processed according to policy.
+      </p>
+    </div>
+  {% endif %}
+
+  <div class="ticket-footer">
+    <div>
+      <span>Booked at: {{ ticket.booked_at | datetime_format }}</span>
+      <div style="font-size: 0.75rem; margin-top: 2px;">Keep this ticket handy with a valid government photo ID.</div>
+    </div>
+    <div style="font-family: monospace; font-size: 1.1rem; letter-spacing: 2px; color: var(--secondary);">
+      *BUS-{{ ticket.booking_id }}-{{ ticket.seat_no }}*
+    </div>
+  </div>
+</div>
+{% endblock %}

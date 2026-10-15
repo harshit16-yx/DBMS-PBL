@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Crew Management - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Crew Management</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Register and manage licensed drivers and conductors assigned to scheduled trips.
+    </p>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; align-items: start; margin-bottom: 1.5rem;">
+  <!-- Add Driver Form -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Add New Driver</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('admin.crew') }}">
+        <input type="hidden" name="role" value="driver">
+        <div class="form-group">
+          <label for="dName">Driver Full Name *</label>
+          <input type="text" name="name" id="dName" class="form-control" placeholder="e.g. Anand Jadhav" required>
+        </div>
+        <div class="form-group">
+          <label for="dLicense">Driving License Number *</label>
+          <input type="text" name="license_no" id="dLicense" class="form-control" placeholder="e.g. DL-MH-2020-1122" required>
+        </div>
+        <div class="form-group">
+          <label for="dPhone">Mobile Phone *</label>
+          <input type="text" name="phone" id="dPhone" class="form-control" placeholder="e.g. 9811099887" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Register Driver</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Conductor Form -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Add New Conductor</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('admin.crew') }}">
+        <input type="hidden" name="role" value="conductor">
+        <div class="form-group">
+          <label for="cName">Conductor Full Name *</label>
+          <input type="text" name="name" id="cName" class="form-control" placeholder="e.g. Santosh Gaikwad" required>
+        </div>
+        <div class="form-group">
+          <label for="cPhone">Mobile Phone *</label>
+          <input type="text" name="phone" id="cPhone" class="form-control" placeholder="e.g. 9845011223" required>
+        </div>
+        <div style="margin-top: 1.9rem;">
+          <button type="submit" class="btn btn-teal" style="width: 100%;">Register Conductor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Crew Lists -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem;">
+  <!-- Drivers Table -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Registered Drivers ({{ drivers|length }})</h3>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>License Number</th>
+            <th>Phone</th>
+            <th>Trips</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if drivers %}
+            {% for d in drivers %}
+              <tr>
+                <td><strong>#{{ d.driver_id }}</strong></td>
+                <td><strong>{{ d.name }}</strong></td>
+                <td><code>{{ d.license_no }}</code></td>
+                <td>{{ d.phone }}</td>
+                <td>{{ d.trips_count }} trips</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No drivers registered.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Conductors Table -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Registered Conductors ({{ conductors|length }})</h3>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Trips</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if conductors %}
+            {% for c in conductors %}
+              <tr>
+                <td><strong>#{{ c.conductor_id }}</strong></td>
+                <td><strong>{{ c.name }}</strong></td>
+                <td>{{ c.phone }}</td>
+                <td>{{ c.trips_count }} trips</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">No conductors registered.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule New Trip - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Schedule New Trip Service</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Assign route, fleet vehicle, driver, and conductor with conflict validation.
+    </p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('admin.trips') }}" class="btn btn-secondary">&larr; Back to Trips</a>
+  </div>
+</div>
+
+<div class="card" style="max-width: 700px; margin: 0 auto;">
+  <div class="card-header">
+    <h3>New Trip Service Configuration</h3>
+    <span class="badge badge-scheduled">Trigger Overlap Validation</span>
+  </div>
+  <div class="card-body">
+    <!-- Notice explaining trigger business logic -->
+    <div class="alert alert-info" style="margin-bottom: 1.5rem;">
+      <div>
+        <strong>Database Rule Enforcement:</strong>
+        <p style="font-size: 0.85rem; margin-top: 0.25rem;">
+          The database strictly prohibits overlapping duties. The MySQL trigger <code>trg_trip_overlap_ins</code>
+          will automatically abort insertion if the selected driver, conductor, or bus has an overlapping active trip during this time window.
+        </p>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin.new_trip') }}">
+      <div class="form-grid">
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="routeSelect">Corridor / Route *</label>
+          <select name="route_id" id="routeSelect" class="form-control" required>
+            <option value="">-- Choose Route --</option>
+            {% for r in routes %}
+              <option value="{{ r.route_id }}">{{ r.source_city }} &rarr; {{ r.dest_city }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group" style="grid-column: span 2;">
+          <label for="busSelect">Bus Vehicle (Active Fleet) *</label>
+          <select name="bus_id" id="busSelect" class="form-control" required>
+            <option value="">-- Choose Bus --</option>
+            {% for b in buses %}
+              <option value="{{ b.bus_id }}">{{ b.reg_no }} ({{ b.bus_type }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="driverSelect">Assigned Driver *</label>
+          <select name="driver_id" id="driverSelect" class="form-control" required>
+            <option value="">-- Choose Driver --</option>
+            {% for d in drivers %}
+              <option value="{{ d.driver_id }}">{{ d.name }} ({{ d.phone }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="conductorSelect">Assigned Conductor *</label>
+          <select name="conductor_id" id="conductorSelect" class="form-control" required>
+            <option value="">-- Choose Conductor --</option>
+            {% for c in conductors %}
+              <option value="{{ c.conductor_id }}">{{ c.name }} ({{ c.phone }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="depTime">Departure Date &amp; Time *</label>
+          <input type="datetime-local" name="departure_time" id="depTime" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="arrTime">Arrival Date &amp; Time *</label>
+          <input type="datetime-local" name="arrival_time" id="arrTime" class="form-control" required>
+          <small class="form-help">Must be later than departure (chk_trip_times constraint).</small>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+        <button type="submit" class="btn btn-primary" style="flex: 1; padding: 0.75rem;">
+          Schedule Trip Service
+        </button>
+        <a href="{{ url_for('admin.trips') }}" class="btn btn-secondary">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

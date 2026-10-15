@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Operational &amp; Financial Reports - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Operational &amp; Financial Reports</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Comprehensive reporting hub utilizing SQL Views, aggregate functions, and subqueries.
+    </p>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+  <!-- Report 1: Trip Occupancy -->
+  <div class="card">
+    <div class="card-header">
+      <h3>1. Trip Occupancy Report</h3>
+      <span class="badge badge-scheduled">View: v_trip_occupancy</span>
+    </div>
+    <div class="card-body">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+        Analyzes passenger load per scheduled trip, comparing booked vs total seats with visual percentage indicators.
+      </p>
+      <a href="{{ url_for('reports.occupancy') }}" class="btn btn-primary" style="width: 100%;">View Occupancy Report &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Report 2: Route Revenue -->
+  <div class="card">
+    <div class="card-header">
+      <h3>2. Route Revenue Summary</h3>
+      <span class="badge badge-active">View: v_route_revenue</span>
+    </div>
+    <div class="card-body">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+        Calculates total fare collections, cancellation refunds, and net revenue generated per travel corridor with date filtering.
+      </p>
+      <a href="{{ url_for('reports.revenue') }}" class="btn btn-primary" style="width: 100%;">View Revenue Report &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Report 3: Cancellation Volume -->
+  <div class="card">
+    <div class="card-header">
+      <h3>3. Cancellation &amp; Refund Analytics</h3>
+      <span class="badge badge-warning">Trigger Enforced</span>
+    </div>
+    <div class="card-body">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+        Aggregates booking cancellations and computed refund payouts grouped by route and calendar month.
+      </p>
+      <a href="{{ url_for('reports.cancellations') }}" class="btn btn-primary" style="width: 100%;">View Cancellation Report &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Report 4: Crew Utilization -->
+  <div class="card">
+    <div class="card-header">
+      <h3>4. Crew Duty &amp; Utilization</h3>
+      <span class="badge badge-scheduled">View: v_crew_utilization</span>
+    </div>
+    <div class="card-body">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+        Tracks total operating duty hours and completed trip counts per driver and conductor.
+      </p>
+      <a href="{{ url_for('reports.crew_utilization') }}" class="btn btn-primary" style="width: 100%;">View Crew Utilization &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Report 5: Bus Utilization -->
+  <div class="card">
+    <div class="card-header">
+      <h3>5. Fleet Running Hours</h3>
+      <span class="badge badge-scheduled">View: v_bus_utilization</span>
+    </div>
+    <div class="card-body">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+        Monitors vehicle wear and utilization, recording completed trips and total running hours per bus.
+      </p>
+      <a href="{{ url_for('reports.bus_utilization') }}" class="btn btn-primary" style="width: 100%;">View Fleet Utilization &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Report 6: Passenger History -->
+  <div class="card">
+    <div class="card-header">
+      <h3>6. Passenger Travel History</h3>
+      <span class="badge badge-active">Individual Ledger</span>
+    </div>
+    <div class="card-body">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+        Inspects complete reservation history, ticket transactions, and total lifetime spend for any passenger.
+      </p>
+      <a href="{{ url_for('reports.passenger_history') }}" class="btn btn-primary" style="width: 100%;">View Passenger History &rarr;</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

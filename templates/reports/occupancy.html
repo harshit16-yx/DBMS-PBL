@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Trip Occupancy Report - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Trip Occupancy Report</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Passenger capacity load per service. Powered by SQL View <code>v_trip_occupancy</code>.
+    </p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">&larr; Back to Reports</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Occupancy Metrics ({{ reports|length }} trips)</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Trip #</th>
+          <th>Route (Origin &rarr; Destination)</th>
+          <th>Departure</th>
+          <th>Bus / Type</th>
+          <th>Booked / Total</th>
+          <th>Available</th>
+          <th style="width: 220px;">Occupancy Rate</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if reports %}
+          {% for r in reports %}
+            <tr>
+              <td><strong>#{{ r.trip_id }}</strong></td>
+              <td>
+                <strong>{{ r.source_city }} &rarr; {{ r.dest_city }}</strong>
+                <div><small style="color: var(--text-muted);">{{ r.intermediate_stops_count }} intermediate stops</small></div>
+              </td>
+              <td>{{ r.departure_time | datetime_format }}</td>
+              <td>
+                <div>{{ r.reg_no }}</div>
+                <small style="color: var(--text-muted);">{{ r.bus_type }}</small>
+              </td>
+              <td>
+                <strong>{{ r.booked_seats }}</strong> / {{ r.total_seats }}
+              </td>
+              <td>{{ r.available_seats }} seats</td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <div class="progress-bar-container" style="flex: 1;">
+                    <div class="progress-bar-fill {% if r.occupancy_pct >= 75 %}fill-high{% elif r.occupancy_pct < 25 %}fill-low{% endif %}"
+                         style="width: {{ r.occupancy_pct }}%;"></div>
+                  </div>
+                  <span style="font-weight: 600; font-size: 0.85rem; width: 45px; text-align: right;">{{ r.occupancy_pct }}%</span>
+                </div>
+              </td>
+              <td>
+                {% if r.trip_status == 'Scheduled' %}
+                  <span class="badge badge-scheduled">Scheduled</span>
+                {% elif r.trip_status == 'Running' %}
+                  <span class="badge badge-running">Running</span>
+                {% elif r.trip_status == 'Completed' %}
+                  <span class="badge badge-completed">Completed</span>
+                {% else %}
+                  <span class="badge badge-cancelled">Cancelled</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              No trips recorded in database.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

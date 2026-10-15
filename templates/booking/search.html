@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Search & Book Trips - Bus Reservation System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Search Trips</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Find scheduled bus trips across key routes, check real-time availability, and reserve your seat.
+    </p>
+  </div>
+</div>
+
+<!-- Search Filter Form -->
+<div class="card">
+  <div class="card-header">
+    <h3>Filter Available Trips</h3>
+  </div>
+  <div class="card-body">
+    <form method="GET" action="{{ url_for('booking.search') }}">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="sourceSelect">Source City</label>
+          <select name="source" id="sourceSelect" class="form-control">
+            <option value="">-- All Source Cities --</option>
+            {% for c in cities %}
+              <option value="{{ c }}" {% if selected_source == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="destSelect">Destination City</label>
+          <select name="dest" id="destSelect" class="form-control">
+            <option value="">-- All Destination Cities --</option>
+            {% for c in cities %}
+              <option value="{{ c }}" {% if selected_dest == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="travelDate">Travel Date</label>
+          <input type="date" name="travel_date" id="travelDate" class="form-control" value="{{ selected_date }}">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+        <button type="submit" class="btn btn-primary">Search Available Trips</button>
+        <a href="{{ url_for('booking.search') }}" class="btn btn-secondary">Reset Filters</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Trip Results Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>Scheduled Trips ({{ trips|length }} found)</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Trip #</th>
+          <th>Route (From &rarr; To)</th>
+          <th>Departure</th>
+          <th>Arrival</th>
+          <th>Bus / Type</th>
+          <th>Fare</th>
+          <th>Available Seats</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if trips %}
+          {% for t in trips %}
+            <tr>
+              <td><strong>#{{ t.trip_id }}</strong></td>
+              <td>
+                <strong>{{ t.source_city }} &rarr; {{ t.dest_city }}</strong>
+                <div><small style="color: var(--text-muted);">{{ t.distance_km }} km</small></div>
+              </td>
+              <td>{{ t.departure_time | datetime_format }}</td>
+              <td>{{ t.arrival_time | datetime_format }}</td>
+              <td>
+                <div>{{ t.reg_no }}</div>
+                <span class="badge badge-scheduled">{{ t.bus_type }}</span>
+              </td>
+              <td>
+                {% if t.base_fare %}
+                  <strong style="color: var(--teal);">{{ t.base_fare | currency }}</strong>
+                {% else %}
+                  <span style="color: var(--text-muted);">Fare N/A</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if t.available_seats > 0 %}
+                  <span style="font-weight: 600; color: #15803d;">{{ t.available_seats }} / {{ t.total_seats }}</span>
+                {% else %}
+                  <span class="badge badge-retired">Sold Out</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if t.available_seats > 0 %}
+                  <a href="{{ url_for('booking.view_seats', trip_id=t.trip_id) }}" class="btn btn-sm btn-primary">Select Seats</a>
+                {% else %}
+                  <button class="btn btn-sm btn-secondary" disabled>Fully Booked</button>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              No scheduled trips found matching your criteria. Try adjusting your search filters or check all upcoming trips.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

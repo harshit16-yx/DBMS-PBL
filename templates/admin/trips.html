@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Trip Scheduling &amp; Operations - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Trip Scheduling &amp; Operations</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Schedule services, assign crew &amp; buses, track operational status, and manage cancellations.
+    </p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('admin.new_trip') }}" class="btn btn-primary">+ Schedule New Trip</a>
+  </div>
+</div>
+
+<!-- Filters Form -->
+<div class="card">
+  <div class="card-header">
+    <h3>Filter Trips</h3>
+  </div>
+  <div class="card-body">
+    <form method="GET" action="{{ url_for('admin.trips') }}" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 200px;">
+        <label for="routeFilter" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Route</label>
+        <select name="route_id" id="routeFilter" class="form-control">
+          <option value="">-- All Routes --</option>
+          {% for r in routes %}
+            <option value="{{ r.route_id }}" {% if route_filter|string == r.route_id|string %}selected{% endif %}>
+              {{ r.source_city }} &rarr; {{ r.dest_city }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="flex: 1; min-width: 180px;">
+        <label for="statusFilter" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Status</label>
+        <select name="status" id="statusFilter" class="form-control">
+          <option value="">-- All Statuses --</option>
+          <option value="Scheduled" {% if status_filter == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+          <option value="Running" {% if status_filter == 'Running' %}selected{% endif %}>Running</option>
+          <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+          <option value="Cancelled" {% if status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+      </div>
+
+      <div style="display: flex; align-items: flex-end; gap: 0.5rem;">
+        <button type="submit" class="btn btn-secondary">Apply Filters</button>
+        <a href="{{ url_for('admin.trips') }}" class="btn btn-secondary">Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Trips Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>Scheduled Services ({{ trips|length }})</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Trip #</th>
+          <th>Route</th>
+          <th>Departure</th>
+          <th>Arrival</th>
+          <th>Bus / Type</th>
+          <th>Crew (Driver / Conductor)</th>
+          <th>Bookings</th>
+          <th>Status</th>
+          <th>Change Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if trips %}
+          {% for t in trips %}
+            <tr>
+              <td><strong>#{{ t.trip_id }}</strong></td>
+              <td><strong>{{ t.source_city }} &rarr; {{ t.dest_city }}</strong></td>
+              <td>{{ t.departure_time | datetime_format }}</td>
+              <td>{{ t.arrival_time | datetime_format }}</td>
+              <td>
+                <div>{{ t.reg_no }}</div>
+                <small style="color: var(--text-muted);">{{ t.bus_type }}</small>
+              </td>
+              <td>
+                <div>&#129489;&#8205;&#9992;&#65039; {{ t.driver_name }}</div>
+                <small style="color: var(--text-muted);">&#128100; {{ t.conductor_name }}</small>
+              </td>
+              <td>
+                <strong>{{ t.booked_count }}</strong> / {{ t.total_seats }}
+              </td>
+              <td>
+                {% if t.status == 'Scheduled' %}
+                  <span class="badge badge-scheduled">Scheduled</span>
+                {% elif t.status == 'Running' %}
+                  <span class="badge badge-running">Running</span>
+                {% elif t.status == 'Completed' %}
+                  <span class="badge badge-completed">Completed</span>
+                {% else %}
+                  <span class="badge badge-cancelled">Cancelled</span>
+                {% endif %}
+              </td>
+              <td>
+                <form method="POST" action="{{ url_for('admin.update_trip_status', trip_id=t.trip_id) }}" style="display: inline;">
+                  <select name="status" onchange="this.form.submit();" class="form-control" style="padding: 0.2rem 0.4rem; font-size: 0.8rem; width: auto; display: inline-block;">
+                    <option value="Scheduled" {% if t.status == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+                    <option value="Running" {% if t.status == 'Running' %}selected{% endif %}>Running</option>
+                    <option value="Completed" {% if t.status == 'Completed' %}selected{% endif %}>Completed</option>
+                    <option value="Cancelled" {% if t.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                  </select>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              No trips found matching the selected criteria.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

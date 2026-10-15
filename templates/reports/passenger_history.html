@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Passenger Travel History - Bus System{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Passenger Travel &amp; Financial History</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 2px;">
+      Report 18: Complete reservation lifecycle, seat allocations, and payment ledger for individual travelers.
+    </p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('reports.index') }}" class="btn btn-secondary">&larr; Back to Reports</a>
+  </div>
+</div>
+
+<!-- Passenger Selector Form -->
+<div class="card">
+  <div class="card-body">
+    <form method="GET" action="{{ url_for('reports.passenger_history') }}" style="display: flex; gap: 1rem; align-items: flex-end; max-width: 600px;">
+      <div style="flex: 1;">
+        <label for="pSelect" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Select Passenger</label>
+        <select name="passenger_id" id="pSelect" class="form-control" onchange="window.location.href='{{ url_for('reports.passenger_history') }}/' + this.value;">
+          {% for p in passengers %}
+            <option value="{{ p.passenger_id }}" {% if selected_passenger and selected_passenger.passenger_id == p.passenger_id %}selected{% endif %}>
+              {{ p.name }} ({{ p.phone }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if selected_passenger %}
+  <!-- Passenger Profile & Summary Metrics -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Reservations</div>
+      <div class="stat-value">{{ summary.total_bookings }}</div>
+      <div class="stat-subtext">{{ summary.confirmed }} confirmed &bull; {{ summary.cancelled }} cancelled</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Gross Paid Fares</div>
+      <div class="stat-value">{{ summary.total_paid | currency }}</div>
+      <div class="stat-subtext">Sum of paid ticket fares</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Refunds Credited</div>
+      <div class="stat-value" style="color: #991b1b;">{{ summary.total_refunded | currency }}</div>
+      <div class="stat-subtext">Cancellations refunded</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Net Lifetime Spend</div>
+      <div class="stat-value" style="color: var(--teal);">{{ summary.net_spent | currency }}</div>
+      <div class="stat-subtext">Gross paid minus refunds</div>
+    </div>
+  </div>
+
+  <!-- Booking History Table -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Booking Timeline for {{ selected_passenger.name }}</h3>
+      <span style="font-size: 0.85rem; color: var(--text-muted);">Phone: {{ selected_passenger.phone }} &bull; Email: {{ selected_passenger.email or 'N/A' }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Booking #</th>
+            <th>Booked At</th>
+            <th>Route (Origin &rarr; Destination)</th>
+            <th>Travel Date</th>
+            <th>Bus / Type</th>
+            <th>Seat</th>
+            <th>Booking Status</th>
+            <th>Paid Amount</th>
+            <th>Refund Amount</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if bookings %}
+            {% for b in bookings %}
+              <tr>
+                <td><strong>#{{ b.booking_id }}</strong></td>
+                <td>{{ b.booked_at | datetime_format }}</td>
+                <td><strong>{{ b.source_city }} &rarr; {{ b.dest_city }}</strong></td>
+                <td>{{ b.departure_time | datetime_format }}</td>
+                <td>{{ b.reg_no }} ({{ b.bus_type }})</td>
+                <td><span class="badge badge-active">Seat {{ b.seat_no }}</span></td>
+                <td>
+                  {% if b.booking_status == 'Confirmed' %}
+                    <span class="badge badge-confirmed">Confirmed</span>
+                  {% else %}
+                    <span class="badge badge-cancelled">Cancelled</span>
+                  {% endif %}
+                </td>
+                <td>{{ b.paid_amount | currency if b.paid_amount else 'N/A' }}</td>
+                <td>
+                  {% if b.refund_amount is not none and b.booking_status == 'Cancelled' %}
+                    <strong style="color: #991b1b;">{{ b.refund_amount | currency }}</strong>
+                  {% else %}
+                    &mdash;
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{{ url_for('booking.ticket', booking_id=b.booking_id) }}" class="btn btn-sm btn-secondary">Ticket</a>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="10" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                No reservations found for this passenger.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

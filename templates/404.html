@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found - Bus Reservation System{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 3rem auto; text-align: center;">
+  <div class="card-body" style="padding: 3rem 2rem;">
+    <h1 style="font-size: 3rem; color: var(--primary); margin-bottom: 0.5rem;">404</h1>
+    <h2 style="margin-bottom: 1rem; color: var(--text-main);">Page Not Found</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">The requested page could not be found or may have been moved.</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary">Return to Home</a>
+  </div>
+</div>
+{% endblock %}
